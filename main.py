@@ -54,6 +54,21 @@ def load_image(path, scale_to=None, color_key="auto"):
             pygame.draw.circle(surf, (255, 215, 0), (surf.get_width()//2, surf.get_height()//2), surf.get_width()//2)
         return surf
 
+bike_assets = {
+    'red': {
+        'side': load_image("assets/bike_red.png", (800, 600), "auto"),
+        'back': load_image("assets/bike_back_view_red.png", (250, 350), "auto")
+    },
+    'green': {
+        'side': load_image("assets/bike_green.png", (800, 600), "auto"),
+        'back': load_image("assets/bike_back_view_green.png", (250, 350), "auto")
+    },
+    'blue': {
+        'side': load_image("assets/bike_blue.png", (800, 600), "auto"),
+        'back': load_image("assets/bike_back_view_blue.png", (250, 350), "auto")
+    }
+}
+
 bike_back_img = load_image("assets/bike_back_view.png", (250, 350), "auto")
 bike_side_img = load_image("assets/bike.png", (800, 600), "auto")
 coin_img = load_image("assets/coin.png", (160, 160), None)
@@ -114,6 +129,8 @@ class Game:
         self.lap = 1
         self.max_laps = 3
         self.sky_offset_x = 0
+        self.player_color = 'red'
+        self.bots = []
         
         # Testo per l'arco
         arch_font = pygame.font.SysFont(None, 200, bold=True)
@@ -189,9 +206,34 @@ class Game:
                     if event.key == pygame.K_ESCAPE:
                         running = False
                     if self.state == "SPLASH":
-                        self.state = "PLAYING"
-                        if self.engine_sound:
-                            self.engine_sound.play(-1)
+                        self.state = "SELECT_BIKE"
+                    elif self.state == "SELECT_BIKE":
+                        color_chosen = None
+                        if event.key == pygame.K_1: color_chosen = 'red'
+                        elif event.key == pygame.K_2: color_chosen = 'green'
+                        elif event.key == pygame.K_3: color_chosen = 'blue'
+                        
+                        if color_chosen:
+                            self.state = "PLAYING"
+                            self.player_color = color_chosen
+                            colors = ['red', 'green', 'blue']
+                            colors.remove(color_chosen)
+                            
+                            self.bots = []
+                            self.bots.append({
+                                'pos': self.pos + 3000, 
+                                'speed': 5200,
+                                'color': colors[0],
+                                'x': -0.6
+                            })
+                            self.bots.append({
+                                'pos': self.pos + 6000, 
+                                'speed': 5400,
+                                'color': colors[1],
+                                'x': 0.6
+                            })
+                            if self.engine_sound:
+                                self.engine_sound.play(-1)
                     elif self.state == "GAMEOVER":
                         running = False
                     elif self.state == "PLAYING":
@@ -228,6 +270,37 @@ class Game:
                 
                 screen.blit(prompt_shadow, (WIDTH//2 - prompt.get_width()//2 + 3, HEIGHT - 147))
                 screen.blit(prompt, (WIDTH//2 - prompt.get_width()//2, HEIGHT - 150))
+                
+                pygame.display.flip()
+                clock.tick(FPS)
+                continue
+
+            if self.state == "SELECT_BIKE":
+                screen.fill(SKY_COLOR)
+                pygame.draw.rect(screen, GRASS_DARK, (0, HEIGHT//2, WIDTH, HEIGHT//2))
+                
+                title = font.render("SCEGLI LA TUA MOTO", True, (255, 215, 0))
+                title_shadow = font.render("SCEGLI LA TUA MOTO", True, (0, 0, 0))
+                screen.blit(title_shadow, (WIDTH//2 - title.get_width()//2 + 3, 103))
+                screen.blit(title, (WIDTH//2 - title.get_width()//2, 100))
+                
+                # Scale bike sides for selection screen
+                bw = 400
+                bh = 300
+                red_side = pygame.transform.scale(bike_assets['red']['side'], (bw, bh))
+                green_side = pygame.transform.scale(bike_assets['green']['side'], (bw, bh))
+                blue_side = pygame.transform.scale(bike_assets['blue']['side'], (bw, bh))
+                
+                screen.blit(red_side, (WIDTH//4 - bw//2, HEIGHT//2 - bh//2))
+                screen.blit(green_side, (WIDTH//2 - bw//2, HEIGHT//2 - bh//2))
+                screen.blit(blue_side, (3*WIDTH//4 - bw//2, HEIGHT//2 - bh//2))
+                
+                t1 = font.render("1: ROSSA", True, (255, 0, 0))
+                t2 = font.render("2: VERDE", True, (0, 255, 0))
+                t3 = font.render("3: BLU", True, (0, 0, 255))
+                screen.blit(t1, (WIDTH//4 - t1.get_width()//2, HEIGHT - 150))
+                screen.blit(t2, (WIDTH//2 - t2.get_width()//2, HEIGHT - 150))
+                screen.blit(t3, (3*WIDTH//4 - t3.get_width()//2, HEIGHT - 150))
                 
                 pygame.display.flip()
                 clock.tick(FPS)
@@ -297,6 +370,14 @@ class Game:
                     self.is_flipping = False
                     self.playerY = 0
 
+            # Aggiornamento Bots
+            for bot in getattr(self, 'bots', []):
+                bot['pos'] += bot['speed'] * (1/FPS)
+                if bot['pos'] >= self.track_length:
+                    bot['pos'] -= self.track_length
+                elif bot['pos'] < 0:
+                    bot['pos'] += self.track_length
+
             # Avanzamento
             self.pos += self.speed * (1/FPS)
             while self.pos >= self.track_length:
@@ -353,7 +434,7 @@ class Game:
             dx = 0
             
             # Calcolo Proiezioni
-            for n in range(300):
+            for n in range(302):
                 idx = (startPos + n) % len(self.lines)
                 l = self.lines[idx]
                 
@@ -414,6 +495,40 @@ class Game:
                                 (treeX - tw//2, treeY - th//2),
                                 (treeX + tw//2, treeY - th//2)
                             ])
+                
+                # Disegna Bots
+                for bot in getattr(self, 'bots', []):
+                    bot_seg = int(bot['pos'] / SEGMENT_LENGTH) % len(self.lines)
+                    if bot_seg == idx:
+                        p1 = self.lines[bot_seg]
+                        p2 = self.lines[(bot_seg + 1) % len(self.lines)]
+                        percent = (bot['pos'] % SEGMENT_LENGTH) / SEGMENT_LENGTH
+                        
+                        bot_scale = p1.scale + (p2.scale - p1.scale) * percent
+                        bot_Y = p1.Y + (p2.Y - p1.Y) * percent
+                        
+                        if bot_Y < p1.clip:
+                            world_x1 = p1.x + bot['x'] * 2000
+                            world_x2 = p2.x + bot['x'] * 2000
+                            
+                            sx1 = (1 + p1.scale * (world_x1 - camX)) * WIDTH / 2
+                            sx2 = (1 + p2.scale * (world_x2 - camX)) * WIDTH / 2
+                            bot_X = sx1 + (sx2 - sx1) * percent
+                            
+                            bot_img = bike_assets.get(bot['color'], {}).get('back')
+                            if bot_img:
+                                bw = int(bot_img.get_width() * bot_scale * 2500)
+                                bh = int(bot_img.get_height() * bot_scale * 2500)
+                                
+                                if bw > WIDTH * 2:
+                                    if bw != 0:
+                                        aspect = bh / bw
+                                        bw = int(WIDTH * 2)
+                                        bh = int(bw * aspect)
+                                
+                                if bw > 0 and bh > 0:
+                                    scaled = pygame.transform.scale(bot_img, (bw, bh))
+                                    screen.blit(scaled, (bot_X - bw/2, bot_Y - bh))
                 
                 # Disegna Monete
                 if l.sprite is not None and not l.sprite_collected:
@@ -480,14 +595,15 @@ class Game:
 
             # Disegno Giocatore
             tilt = 0
-            if keys[pygame.K_LEFT]: tilt = 10
-            if keys[pygame.K_RIGHT]: tilt = -10
+            if keys[pygame.K_LEFT]: tilt = 25
+            if keys[pygame.K_RIGHT]: tilt = -25
                 
-            bike_img = bike_back_img
+            bike_base_img = bike_assets.get(getattr(self, 'player_color', 'red'), {}).get('back', bike_back_img)
+            bike_img = bike_base_img
             if self.is_flipping:
-                bike_img = pygame.transform.rotate(bike_back_img, self.flip_angle)
+                bike_img = pygame.transform.rotate(bike_base_img, self.flip_angle)
             elif tilt != 0:
-                bike_img = pygame.transform.rotate(bike_back_img, tilt)
+                bike_img = pygame.transform.rotate(bike_base_img, tilt)
                 
             bw = bike_img.get_width()
             bh = bike_img.get_height()
