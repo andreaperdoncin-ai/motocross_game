@@ -1,11 +1,11 @@
-# Motocross 3D - Amedeo's Game 🏍️
+# Motocross 3D - Game 🏍️
 
 *(Scroll down for English version)*
 
 ## 🇮🇹 Italiano
 
 Questo è un semplice ma divertente videogioco arcade in stile 3D di Motocross, sviluppato interamente in Python (tramite la libreria Pygame). 
-Il gioco è stato creato su misura per **Amedeo (4 anni)**, con l'obiettivo di fargli scoprire il mondo dei videogiochi attraverso controlli semplicissimi e grafiche colorate e immediate.
+Il gioco è stato creato su misura per **Ame (4 anni)**, con l'obiettivo di fargli scoprire il mondo dei videogiochi attraverso controlli semplicissimi e grafiche colorate e immediate.
 
 ### 🎮 L'Obiettivo del Gioco
 Lo scopo del gioco è completare **3 giri** di pista raccogliendo il maggior numero di monete possibili ed evitando gli alberi a bordo pista. Non ci sono penalità troppo severe: il gioco è pensato per essere un'esperienza divertente e senza frustrazioni per un bambino di 4 anni.
@@ -30,7 +30,7 @@ Lo scopo del gioco è completare **3 giri** di pista raccogliendo il maggior num
 ## 🇬🇧 English
 
 This is a simple yet fun 3D-style arcade Motocross game developed entirely in Python using the Pygame library.
-The game was tailor-made for **Amedeo (a 4-year-old boy)**, with the goal of introducing him to video games through highly accessible controls and bright, immediate graphics.
+The game was tailor-made for **Ame (a 4-year-old boy)**, with the goal of introducing him to video games through highly accessible controls and bright, immediate graphics.
 
 ### 🎮 Game Objective
 The goal is to complete **3 laps** of the track while collecting as many coins as possible and avoiding the trees on the sides. There are no harsh penalties: the game is designed to be a fun, frustration-free experience suitable for a 4-year-old.
